@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const studentValidationSchema = z.object({
   id: z.string().min(1, 'Student ID is required'),
+  password: z.string().min(1, 'Password is required').max(20, 'password can not be more then 20 character'),
   name: z.object({
     firstName: z
       .string()
@@ -49,6 +50,7 @@ const studentValidationSchema = z.object({
   }),
   profileImg: z.string().min(1, 'Profile Image is required'),
   isActive: z.enum(['active', 'blocked']).default('active'),
+  isDeleted: z.boolean(),
 });
 
 export default studentValidationSchema;
