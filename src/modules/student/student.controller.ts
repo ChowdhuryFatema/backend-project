@@ -14,24 +14,16 @@ const createStudent = async (req: Request, res: Response) => {
 
     const result = await StudentServices.createStudentIntoDB(zodParseData);
 
-    // if (error) {
-    //   res.status(500).json({
-    //     success: false,
-    //     message: 'Something went wrong',
-    //     error: error.details,
-    //   });
-    // }
-
     res.status(200).json({
       success: true,
       message: 'Student is created successfully',
       data: result,
     });
-  } catch (error) {
+  } catch (error:any) {
     console.log(error);
     res.status(500).json({
       success: false,
-      message: 'Something went wrong',
+      message: error.message || 'Something went wrong',
       error: error,
     });
   }
