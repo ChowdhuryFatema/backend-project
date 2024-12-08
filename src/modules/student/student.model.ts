@@ -75,7 +75,6 @@ const studentSchema = new Schema<TStudent, StudentModel>(
     id: {
       type: String,
       required: [true, 'Student ID is required'],
-      unique: true,
     },
     user: {
       type: Schema.Types.ObjectId,
@@ -95,7 +94,7 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       },
       required: [true, 'Gender is required'],
     },
-    dateOfBirth: { type: Date },
+    dateOfBirth: { type: String },
     email: {
       type: String,
       required: [true, 'Email is required'],
@@ -127,6 +126,14 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       required: [true, 'Local Guardian information is required'],
     },
     profileImg: { type: String },
+    admissionSemester: {
+      type: Schema.Types.ObjectId,
+      ref: 'AcademicSemester',
+    },
+    academicDepartment: {
+      type: Schema.Types.ObjectId,
+      ref: 'AcademicDepartment',
+    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -142,12 +149,12 @@ const studentSchema = new Schema<TStudent, StudentModel>(
 // virtual
 
 studentSchema.virtual('fullName').get(function () {
-  return this.name.firstName + ' ' + this.name.middleName + ' ' + this.name.lastName;
+  return (
+    this.name.firstName + ' ' + this.name.middleName + ' ' + this.name.lastName
+  );
 });
 
 // pre save middleware/ hook : will work on create() save()
-
-
 
 studentSchema.pre('find', function (next) {
   this.find({ isDeleted: { $ne: true } });
