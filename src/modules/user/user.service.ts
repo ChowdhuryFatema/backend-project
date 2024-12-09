@@ -17,7 +17,9 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
     session.startTransaction();
 
     // Find academic semester info
-    const admissionSemester = await AcademicSemester.findById(payload.admissionSemester).session(session);
+    const admissionSemester = await AcademicSemester.findById(
+      payload.admissionSemester,
+    ).session(session);
     if (!admissionSemester) {
       throw new AppError(StatusCodes.NOT_FOUND, 'Admission semester not found');
     }
@@ -25,7 +27,10 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
     // Generate student ID
     const generatedId = await generateStudentId(admissionSemester);
     if (!generatedId) {
-      throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to generate student ID');
+      throw new AppError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        'Failed to generate student ID',
+      );
     }
 
     // Create user object
@@ -54,16 +59,13 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
     // Commit transaction
     await session.commitTransaction();
     return newStudent;
-
-  } catch (error) {
+  } catch (error: any) {
     await session.abortTransaction();
-    console.error('Transaction error:', error);
-    throw new Error('Failed to create User'); 
+    throw new Error(error);
   } finally {
     await session.endSession();
   }
 };
-
 
 export const UserServices = {
   createStudentIntoDB,

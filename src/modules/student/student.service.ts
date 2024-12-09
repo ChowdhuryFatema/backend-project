@@ -5,8 +5,33 @@ import { StatusCodes } from 'http-status-codes';
 import { User } from '../user/user.model';
 import { TStudent } from './student.interface';
 
-const getAllStudentsFromDB = async () => {
-  const result = await Student.find()
+const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
+  console.log('query', query);
+  const queryObj = { ...query };
+
+  const studentSearchAbleFields = ['email', 'name.firstName', 'presentAddress'];
+  let searchTerm = '';
+
+  if (query?.searchTerm) {
+    searchTerm = query.searchTerm as string;
+  }
+
+  const searchQuery = Student.find({
+    $or: studentSearchAbleFields.map((field) => ({
+      [field]: { $regex: searchTerm, $options: 'i' },
+    })),
+  });
+
+  // Filtering
+
+  const excludeFields = ['searchTerm', 'sort', 'limit', 'page'];
+
+  excludeFields.forEach((el) => delete queryObj[el]);
+
+  console.log({ query, queryObj });
+
+  const filterQuery = searchQuery
+    .find(queryObj)
     .populate('admissionSemester')
     .populate({
       path: 'academicDepartment',
@@ -14,7 +39,32 @@ const getAllStudentsFromDB = async () => {
         path: 'academicFaculty',
       },
     });
-  return result;
+
+  let sort = '-createdAt';
+  if (query.sort) {
+    sort = query.sort as string;
+  }
+
+  const sortQuery = filterQuery.sort(sort);
+
+  let page = 1;
+  let limit = 1;
+  let skip = 0;
+
+  if (query.page) {
+    page = Number(query.page);
+    skip = (page - 1) * limit;
+  }
+
+  const paginateQuery = sortQuery.skip(skip);
+
+  if (query.limit) {
+    limit = Number(query.limit);
+  }
+
+  const limitQuery = await paginateQuery.limit(limit);
+
+  return limitQuery;
 };
 
 const getSingleStudentFromDB = async (id: string) => {
@@ -68,12 +118,11 @@ const updateStudentFromDB = async (id: string, payload: Partial<TStudent>) => {
   const result = await Student.findOneAndUpdate(
     { id },
     { $set: modifiedUpdatedData }, // Use $set for updates
-    { new: true, runValidators: true } // Return updated document and run validators
+    { new: true, runValidators: true }, // Return updated document and run validators
   );
 
   return result;
 };
-
 
 const deleteStudentFromDB = async (id: string) => {
   const session = await mongoose.startSession();
