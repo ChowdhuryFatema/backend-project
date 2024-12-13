@@ -98,7 +98,7 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
 const getSingleStudentFromDB = async (id: string) => {
   // const result = await Student.findOne({ id });
 
-  const result = await Student.findOne({ id })
+  const result = await Student.findById( id )
     .populate('admissionSemester')
     .populate({
       path: 'academicDepartment',
@@ -143,8 +143,7 @@ const updateStudentFromDB = async (id: string, payload: Partial<TStudent>) => {
   console.log('Modified Update Data:', modifiedUpdatedData);
 
   // Perform the update
-  const result = await Student.findOneAndUpdate(
-    { id },
+  const result = await Student.findByIdAndUpdate(id,
     { $set: modifiedUpdatedData }, // Use $set for updates
     { new: true, runValidators: true }, // Return updated document and run validators
   );
@@ -159,8 +158,7 @@ const deleteStudentFromDB = async (id: string) => {
     // Start the transaction
     session.startTransaction();
 
-    const deletedStudent = await Student.findOneAndUpdate(
-      { id },
+    const deletedStudent = await Student.findByIdAndUpdate(id,
       { isDeleted: true },
       { new: true, session }, // Pass session explicitly
     );
@@ -169,8 +167,9 @@ const deleteStudentFromDB = async (id: string) => {
       throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to delete student');
     }
 
-    const deletedUser = await User.findOneAndUpdate(
-      { id },
+    const userId = deletedStudent.user;
+
+    const deletedUser = await User.findByIdAndUpdate(userId,
       { isDeleted: true },
       { new: true, session },
     );

@@ -1,43 +1,112 @@
 import { TAcademicSemester } from '../academicSemester/academicSemester.interface';
 import { User } from './user.model';
 
-const findLastStudentId = async (): Promise<string | undefined> => {
+const findLastStudentId = async () => {
   const lastStudent = await User.findOne(
-    { role: 'student' },
-    { id: 1, _id: 0 }
+    {
+      role: 'student',
+    },
+    {
+      id: 1,
+      _id: 0,
+    },
   )
-    .sort({ createdAt: -1 })
+    .sort({
+      createdAt: -1,
+    })
     .lean();
 
-  // Extract the last 4 digits or return undefined if no student is found
-  return lastStudent?.id;
+  return lastStudent?.id ? lastStudent.id : undefined;
 };
 
-export const generateStudentId = async (payload: TAcademicSemester): Promise<string> => {
+export const generateStudentId = async (payload: TAcademicSemester) => {
+  let currentId = (0).toString();
   const lastStudentId = await findLastStudentId();
 
-  // Extract parts of the lastStudentId if it exists
-  const lastStudentYear = lastStudentId?.substring(0, 4); // Extract year (YYYY)
-  const lastStudentSemesterCode = lastStudentId?.substring(4, 6); // Extract semester code (SS)
-  const lastStudentNumber = lastStudentId?.substring(6); // Extract numeric part (NNNN)
+  const lastStudentSemesterCode = lastStudentId?.substring(4, 6);
+  const lastStudentYear = lastStudentId?.substring(0, 4);
 
-  // Current semester and year
-  const currentYear = payload.year;
   const currentSemesterCode = payload.code;
+  const currentYear = payload.year;
 
-  let newIdNumber = 1; // Default start for ID number
   if (
     lastStudentId &&
-    lastStudentYear === currentYear &&
-    lastStudentSemesterCode === currentSemesterCode
+    lastStudentSemesterCode === currentSemesterCode &&
+    lastStudentYear === currentYear
   ) {
-    // Increment the last numeric part if the year and semester match
-    newIdNumber = Number(lastStudentNumber) + 1;
+    currentId = lastStudentId.substring(6);
   }
 
-  // Construct the new student ID
-  const incrementId = newIdNumber.toString().padStart(4, '0'); // Ensure 4-digit format
-  const newStudentId = `${currentYear}${currentSemesterCode}${incrementId}`;
+  let incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
 
-  return newStudentId;
+  incrementId = `${payload.year}${payload.code}${incrementId}`;
+
+  return incrementId;
+};
+
+// Faculty ID
+export const findLastFacultyId = async () => {
+  const lastFaculty = await User.findOne(
+    {
+      role: 'faculty',
+    },
+    {
+      id: 1,
+      _id: 0,
+    },
+  )
+    .sort({
+      createdAt: -1,
+    })
+    .lean();
+
+  return lastFaculty?.id ? lastFaculty.id.substring(2) : undefined;
+};
+
+export const generateFacultyId = async () => {
+  let currentId = (0).toString();
+  const lastFacultyId = await findLastFacultyId();
+
+  if (lastFacultyId) {
+    currentId = lastFacultyId.substring(2);
+  }
+
+  let incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
+
+  incrementId = `F-${incrementId}`;
+
+  return incrementId;
+};
+
+// Admin ID
+export const findLastAdminId = async () => {
+  const lastAdmin = await User.findOne(
+    {
+      role: 'admin',
+    },
+    {
+      id: 1,
+      _id: 0,
+    },
+  )
+    .sort({
+      createdAt: -1,
+    })
+    .lean();
+
+  return lastAdmin?.id ? lastAdmin.id.substring(2) : undefined;
+};
+
+export const generateAdminId = async () => {
+  let currentId = (0).toString();
+  const lastAdminId = await findLastAdminId();
+
+  if (lastAdminId) {
+    currentId = lastAdminId.substring(2);
+  }
+
+  let incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
+
+  incrementId = `A-${incrementId}`;
+  return incrementId;
 };
