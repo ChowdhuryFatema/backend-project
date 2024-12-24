@@ -46,13 +46,18 @@ const auth = (...requiredRoles: TUserRole[]) => {
         iat as number,
       )
     ) {
-      throw new AppError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
+      throw new AppError(StatusCodes.UNAUTHORIZED, 'You are not authorized !');
     }
+
+
     if (requiredRoles && !requiredRoles.includes(role)) {
       throw new AppError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
     }
+
+
     req.user = decoded as JwtPayload;
     next();
+
   });
 };
 

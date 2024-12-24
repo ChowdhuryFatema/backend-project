@@ -36,8 +36,16 @@ const loginUser = async (payload: TLoginUser) => {
     role: user.role,
   };
 
-  const accessToken = createToken(jwtPayload, config.jwt_access_secret as string, config.jwt_access_expires_in as string)
-  const refreshToken = createToken(jwtPayload, config.jwt_refresh_secret as string, config.jwt_refresh_expires_in as string)
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as string,
+    config.jwt_access_expires_in as string,
+  );
+  const refreshToken = createToken(
+    jwtPayload,
+    config.jwt_refresh_secret as string,
+    config.jwt_refresh_expires_in as string,
+  );
 
   return {
     accessToken,
@@ -92,7 +100,66 @@ const changePassword = async (
   return null;
 };
 
+const refreshToken = async (token: string) => {
+    // if the token is sent from the client
+        if (!token) {
+          throw new AppError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
+        }
+    
+        const decoded = jwt.verify(
+          token,
+          config.jwt_refresh_secret as string,
+        ) as JwtPayload;
+    
+        const { userId, iat } = decoded;
+    
+        // checking if the user is exist
+        const user = await User.isUserExistsByCustomId(userId);
+        if (!user) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'This user is not found !');
+        }
+        // checking if the user is already deleted
+        const isUserDeleted = user.isDeleted;
+        if (isUserDeleted) {
+          throw new AppError(StatusCodes.FORBIDDEN, 'This user is deleted !');
+        }
+        // checking if the user is blocked
+        const userStatus = user.status;
+        if (userStatus === 'blocked') {
+          throw new AppError(StatusCodes.FORBIDDEN, 'This user is blocked !');
+        }
+    
+        if (
+          user.passwordChangedAt &&
+          User.isJWTIssuedBeforePasswordChanged(
+            user.passwordChangedAt,
+            iat as number,
+          )
+        ) {
+          throw new AppError(StatusCodes.UNAUTHORIZED, 'You are not authorized !');
+        }
+
+        const jwtPayload = {
+          userId: user.id,
+          role: user.role,
+        };
+      
+        const accessToken = createToken(
+          jwtPayload,
+          config.jwt_access_secret as string,
+          config.jwt_access_expires_in as string,
+        );
+
+        return {
+          accessToken,
+        }
+
+
+    
+};
+
 export const AuthServices = {
   loginUser,
   changePassword,
+  refreshToken,
 };
