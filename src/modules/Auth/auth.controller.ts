@@ -39,7 +39,7 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
 
-  const {refreshToken} = req.cookies;
+  const { refreshToken } = req.cookies;
   const result = await AuthServices.refreshToken(refreshToken);
 
   sendResponse(res, {
@@ -51,8 +51,23 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
 });
 
 
+const forgetPassword = catchAsync(async (req: Request, res: Response) => {
+
+  const userId = req.body.id;
+
+  const result = await AuthServices.forgetPassword(userId);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Reset Lik is generated successfully',
+    data: result,
+  });
+});
+
 export const AuthControllers = {
   loginUser,
   changePassword,
-  refreshToken
+  refreshToken,
+  forgetPassword
 };
