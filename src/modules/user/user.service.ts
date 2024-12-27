@@ -18,6 +18,8 @@ import {
 import { AppError } from '../../errors/AppError';
 import { StatusCodes } from 'http-status-codes';
 import { AcademicDepartment } from '../academicDepartment/academicDepartment.mode';
+import { verifyToken } from '../Auth/auth.utils';
+import { USER_ROLE } from './user.constant';
 
 const createStudentIntoDB = async (password: string, payload: TStudent) => {
   // create a user object
@@ -38,7 +40,7 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
   if (!admissionSemester) {
     throw new AppError(400, 'Admission semester not found');
   }
-  
+
   const session = await mongoose.startSession();
 
   try {
@@ -152,7 +154,7 @@ const createAdminIntoDB = async (password: string, payload: TFaculty) => {
     userData.id = await generateAdminId();
 
     // create a user (transaction-1)
-    const newUser = await User.create([userData], { session }); 
+    const newUser = await User.create([userData], { session });
 
     //create a admin
     if (!newUser.length) {
@@ -180,8 +182,32 @@ const createAdminIntoDB = async (password: string, payload: TFaculty) => {
   }
 };
 
+const getMe = async (userId: string, role: string) => {
+
+  let result = null;
+  if (role === USER_ROLE.student) {
+    result = await Student.findOne({ id: userId }).populate('user')
+  }
+  if (role === USER_ROLE.admin) {
+    result = await Admin.findOne({ id: userId }).populate('user')
+  }
+  if (role === USER_ROLE.faculty) {
+    result = await Faculty.findOne({ id: userId }).populate('user')
+  }
+
+  return result;
+}
+const changeStatus = async (id: string, payload: { status: string }) => {
+
+  const result = await User.findByIdAndUpdate(id, payload, { new: true })
+
+  return result;
+}
+
 export const UserServices = {
   createStudentIntoDB,
   createFacultyIntoDB,
   createAdminIntoDB,
+  getMe,
+  changeStatus
 };
