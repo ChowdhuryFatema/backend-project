@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import validateRequest from '../../middlewares/validateRequest';
 import { adminValidations, createAdminValidationSchema } from '../Admin/admin.validation';
 import { createFacultyValidationSchema, facultyValidations } from '../Faculty/faculty.validation';
@@ -15,7 +15,11 @@ router.post(
   '/create-student',
   // auth(USER_ROLE.admin),
   upload.single('file'),
-  // validateRequest(studentValidations.createStudentValidationSchema),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next()
+  },
+  validateRequest(studentValidations.createStudentValidationSchema),
   UserControllers.createStudent,
 );
 

@@ -7,17 +7,15 @@ import { AppError } from '../../errors/AppError';
 
 const createStudent = catchAsync(async (req, res) => {
 
-  console.log('file', req.file)
-  console.log('data', JSON.parse(req.body.data))
-  // const { password, student: studentData } = req.body;
+  const { password, student: studentData } = req.body;
 
-  // const result = await UserServices.createStudentIntoDB(password, studentData);
+  const result = await UserServices.createStudentIntoDB(req.file, password, studentData);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: 'Student is created succesfully',
-    data: null,
+    message: 'Student is created successfully',
+    data: result,
   });
 });
 

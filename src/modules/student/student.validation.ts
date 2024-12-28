@@ -39,8 +39,7 @@ const createStudentValidationSchema = z.object({
   body: z.object({
     password: z
       .string()
-      .min(1, 'Password is required')
-      .max(20, 'password can not be more then 20 character'),
+      .max(20, 'password can not be more then 20 character').optional(),
     student: z.object({
       name: nameValidationSchema,
       gender: z.enum(['male', 'female', 'other'], {
@@ -64,7 +63,7 @@ const createStudentValidationSchema = z.object({
       localGuardian: localGuardianValidationSchema,
       admissionSemester: z.string(),
       academicDepartment: z.string(),
-      profileImg: z.string().min(1, 'Profile Image is required'),
+      // profileImg: z.string().min(1, 'Profile Image is required'),
     }),
   }),
 });
