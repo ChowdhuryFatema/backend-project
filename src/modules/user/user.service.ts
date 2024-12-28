@@ -20,6 +20,7 @@ import { StatusCodes } from 'http-status-codes';
 import { AcademicDepartment } from '../academicDepartment/academicDepartment.mode';
 import { verifyToken } from '../Auth/auth.utils';
 import { USER_ROLE } from './user.constant';
+import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 
 const createStudentIntoDB = async (password: string, payload: TStudent) => {
   // create a user object
@@ -47,6 +48,9 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
     session.startTransaction();
     //set  generated id
     userData.id = await generateStudentId(admissionSemester);
+
+    // send image to cloudinary
+    sendImageToCloudinary()
 
     // create a user (transaction-1)
     const newUser = await User.create([userData], { session }); // array
