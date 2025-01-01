@@ -4,7 +4,6 @@ const nameValidationSchema = z.object({
   firstName: z
     .string()
     .min(1, 'First Name is required')
-    .max(10, 'First Name cannot be more than 10 characters')
     .refine(
       (value) => value.charAt(0).toUpperCase() + value.slice(1) === value,
       {
